@@ -1,0 +1,516 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Portfolio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" xintegrity="sha512-iecdLmaskl7CVJmO4/C3y/lT9B9m3K/uI7I0lJg0a+a7l45P/J3hL7y7m0o2f7P5S5A7l0p5P7l5B8l4p5R9/pA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Three.js for 3D animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Fallback color */
+        }
+        /* Make the main content container a flexbox to position elements */
+        #main-content {
+            position: relative;
+            z-index: 10;
+        }
+        /* Custom scrollbar for aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+        .text-gradient {
+            background-image: linear-gradient(45deg, #a78bfa, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-bg-effect {
+            position: relative;
+            z-index: 10;
+        }
+        .card-bg-effect:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            border-radius: 12px;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        .card-bg-effect:hover:before {
+            opacity: 1;
+        }
+        /* Custom Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* 3D Canvas Styling */
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+        }
+        .bg-opacity-80 {
+            background-color: rgba(23, 23, 37, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-200">
+    <!-- 3D Canvas -->
+    <canvas id="three-canvas"></canvas>
+
+    <!-- Header/Navigation -->
+    <header class="sticky top-0 z-50 bg-gray-950 bg-opacity-90 backdrop-blur-md shadow-md py-4">
+        <div class="container mx-auto flex justify-between items-center px-6">
+            <a href="#home" class="text-2xl font-bold text-gradient hover:opacity-80 transition-opacity">Sneha Ramdayal Borban</a>
+            <nav class="hidden md:flex space-x-6 font-medium">
+                <a href="#about" class="hover:text-indigo-400 transition-colors">About</a>
+                <a href="#skills" class="hover:text-indigo-400 transition-colors">Skills</a>
+                <a href="#projects" class="hover:text-indigo-400 transition-colors">Projects</a>
+                <a href="#contact" class="hover:text-indigo-400 transition-colors">Contact</a>
+            </nav>
+            <button id="mobile-menu-button" class="md:hidden text-gray-200 hover:text-indigo-400 transition-colors">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-900 border-t border-gray-800 mt-4 px-6 py-4 space-y-2">
+            <a href="#about" class="block py-2 hover:bg-gray-700 rounded-md px-4 transition-colors">About</a>
+            <a href="#skills" class="block py-2 hover:bg-gray-700 rounded-md px-4 transition-colors">Skills</a>
+            <a href="#projects" class="block py-2 hover:bg-gray-700 rounded-md px-4 transition-colors">Projects</a>
+            <a href="#contact" class="block py-2 hover:bg-gray-700 rounded-md px-4 transition-colors">Contact</a>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Hero Section -->
+        {% if portfolio %}
+        <section id="home" class="flex flex-col md:flex-row items-center justify-center min-h-screen text-center md:text-left py-20 px-6 space-y-12 md:space-y-0 md:space-x-16 container mx-auto">
+            <div class="max-w-xl animate-fade-in-up">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4" style="animation: fadeIn 1s ease-out;">Hello, I'm <span class="text-gradient"> <br> {{portfolio.name}}</span>.</h1>
+                <p class="text-xl md:text-3xl text-gray-400 mb-6 font-light" style="animation: fadeIn 1s ease-out 0.5s backwards;">{{portfolio.bio1}} <span class="font-semibold text-indigo-300">{{portfolio.bio2}}</span>{{portfolio.bio3}}</p>
+                <a href="#projects" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl" style="animation: fadeIn 1s ease-out 1s backwards;">View My Work</a>
+            </div>
+            <!-- The rounded-full class ensures the image is circular -->
+            <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-indigo-400 shadow-2xl" style="animation: fadeIn 1s ease-out 0.5s backwards;">
+                {% if portfolio.img %}
+                <img src="{{portfolio.img.url}}" alt="Your Photo" class="w-full h-full object-cover transform transition-transform duration-500 hover:scale-110">
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section id="about" class="py-20 px-6 bg-gray-900 bg-opacity-80 backdrop-blur-sm">
+            <div class="container mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-white mb-12 animate-on-scroll" style="animation-delay: 0.1s;">About Me</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+                    <div class="order-2 md:order-1 animate-on-scroll" style="animation-delay: 0.3s;">
+                        <!-- Updated About Me content -->
+                        <p class="max-w-xl text-center md:text-left text-lg text-gray-300 mb-6 leading-relaxed">
+                            {{portfolio.about1}}
+                        </p>
+                        <p class="max-w-xl text-center md:text-left text-lg text-gray-300 mb-6 leading-relaxed">
+                            {{portfolio.about2}}
+                        </p>
+                    </div>
+                    <!-- Photo added to About Me section, adjusted for vertical rectangle -->
+                    <div class="w-[250px] h-[350px] rounded-xl overflow-hidden shadow-2xl order-1 md:order-2 animate-on-scroll" style="animation-delay: 0.5s;">
+                        {% if portfolio.aboutimg %}
+                        <img src="{{portfolio.aboutimg.url}}" alt="Your Photo" class="w-full h-full object-cover transform transition-transform duration-500 hover:scale-105">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% else %}
+        <section id="home" class="flex flex-col md:flex-row items-center justify-center min-h-screen text-center md:text-left py-20 px-6 space-y-12 md:space-y-0 md:space-x-16 container mx-auto">
+            <div class="max-w-xl animate-fade-in-up">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4" style="animation: fadeIn 1s ease-out;">Hello, I'm <span class="text-gradient"> <br> Sneha Borban</span>.</h1>
+                <p class="text-xl md:text-3xl text-gray-400 mb-6 font-light" style="animation: fadeIn 1s ease-out 0.5s backwards;">A passionate <span class="font-semibold text-indigo-300">Web Developer</span> building modern and responsive web applications.</p>
+                <a href="#projects" class="inline-block bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl" style="animation: fadeIn 1s ease-out 1s backwards;">View My Work</a>
+            </div>
+            <!-- The rounded-full class ensures the image is circular -->
+            <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-indigo-400 shadow-2xl" style="animation: fadeIn 1s ease-out 0.5s backwards;">
+                <img src="{% static 'images/heroimg.jpg' %}" alt="Your Photo" class="w-full h-full object-cover transform transition-transform duration-500 hover:scale-110">
+            </div>
+        </section>
+
+        <!-- About Me Section -->
+        <section id="about" class="py-20 px-6 bg-gray-900 bg-opacity-80 backdrop-blur-sm">
+            <div class="container mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-white mb-12 animate-on-scroll" style="animation-delay: 0.1s;">About Me</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+                    <div class="order-2 md:order-1 animate-on-scroll" style="animation-delay: 0.3s;">
+                        <!-- Updated About Me content -->
+                        <p class="max-w-xl text-center md:text-left text-lg text-gray-300 mb-6 leading-relaxed">
+                            Welcome! I'm a passionate and detail-oriented web developer driven by a desire to create impactful and elegant digital experiences. I believe that great code is an art form—a perfect blend of technical precision and creative problem-solving. My expertise lies in building dynamic, user-centric applications that are both visually stunning and highly functional.
+                        </p>
+                        <p class="max-w-xl text-center md:text-left text-lg text-gray-300 mb-6 leading-relaxed">
+                            With a solid foundation in core web technologies and a commitment to continuous learning, I'm always eager to take on new challenges and contribute to projects that push the boundaries of what's possible on the web. I'm excited to collaborate with forward-thinking teams to turn innovative ideas into reality.
+                        </p>
+                    </div>
+                    <!-- Photo added to About Me section, adjusted for vertical rectangle -->
+                    <div class="w-[250px] h-[350px] rounded-xl overflow-hidden shadow-2xl order-1 md:order-2 animate-on-scroll" style="animation-delay: 0.5s;">
+                        <img src="{% static 'images/aboutimg.jpg' %}" alt="Your Photo" class="w-full h-full object-cover transform transition-transform duration-500 hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- Skills Section - Organized into categories as requested -->
+        <section id="skills" class="py-20 px-6 bg-gray-900 bg-opacity-80 backdrop-blur-sm">
+            <div class="container mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-center text-white mb-12 animate-on-scroll">My Skills</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Languages -->
+                    {% if skills %}
+                    {% for skill in skills %}
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 card-bg-effect animate-on-scroll" style="animation-delay: 0.2s;">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">{{ skill.category }}</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="{{ skill.icon_class }}"></i><span>{{ skill.name }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <!-- Languages -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 card-bg-effect animate-on-scroll" style="animation-delay: 0.2s;">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">Languages</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-html5 text-orange-500"></i><span>HTML5</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-css3-alt text-blue-500"></i><span>CSS3</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-js-square text-yellow-500"></i><span>JavaScript</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-python text-blue-500"></i><span>Python</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-java text-red-500"></i><span>Java</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Frameworks and Libraries -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 card-bg-effect animate-on-scroll" style="animation-delay: 0.4s;">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">Frameworks & Libraries</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-dyalog text-indigo-500"></i><span>Django</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fas fa-wind text-blue-400"></i><span>Tailwind CSS</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Tools and Technologies -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 card-bg-effect animate-on-scroll" style="animation-delay: 0.6s;">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">Tools & Technologies</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fas fa-database text-gray-400"></i><span>SQL Databases</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fas fa-code-branch text-purple-400"></i><span>Git / GitHub</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fas fa-terminal text-blue-300"></i><span>VS Code</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Currently Learning -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-lg transition-transform duration-300 hover:scale-105 card-bg-effect animate-on-scroll" style="animation-delay: 0.8s;">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">Currently Learning</h4>
+                        <ul class="space-y-4">
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-react text-cyan-500"></i><span>React</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fab fa-node-js text-green-500"></i><span>Node.js</span>
+                            </li>
+                            <li class="flex items-center space-x-3 text-lg">
+                                <i class="fas fa-database text-gray-400"></i><span>MongoDB</span>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section - Updated for no projects -->
+        <section id="projects" class="py-20 px-6 text-center bg-gray-900 bg-opacity-80 backdrop-blur-sm">
+            <div class="container mx-auto max-w-2xl animate-on-scroll">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-8">My Projects</h2>
+                <div class="bg-gray-800 p-12 rounded-xl shadow-lg">
+                    <p class="text-xl text-gray-300 mb-4">I'm currently busy building some amazing things! Please check back later to see my latest work.</p>
+                    <p class="text-lg text-indigo-400">In the meantime, feel free to connect with me!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section with Form -->
+        <section id="contact" class="py-20 px-6 bg-gray-900 bg-opacity-80 backdrop-blur-sm">
+            <div class="container mx-auto max-w-2xl text-center">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 animate-on-scroll">Get In Touch</h2>
+                <p class="text-lg text-gray-300 mb-8 animate-on-scroll" style="animation-delay: 0.2s;">
+                    I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision.
+                </p>
+                <!-- Contact details and form side-by-side on larger screens -->
+                <div class="grid md:grid-cols-2 gap-8 text-left">
+                    <!-- Contact Details -->
+                    {% if portfolio %}
+                    <div class="space-y-6 animate-on-scroll" style="animation-delay: 0.4s;">
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-map-marker-alt text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Location</p>
+                                <p class="text-gray-400">{{portfolio.location}}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-envelope text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Email</p>
+                                <p class="text-gray-400">{{portfolio.email}}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-phone text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Phone</p>
+                                <p class="text-gray-400">{{portfolio.phone}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="space-y-6 animate-on-scroll" style="animation-delay: 0.4s;">
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-map-marker-alt text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Location</p>
+                                <p class="text-gray-400">Bhopal, Madhya Pradesh</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-envelope text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Email</p>
+                                <p class="text-gray-400">snehaborban24@gmail.com</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <i class="fas fa-phone text-indigo-400 text-xl"></i>
+                            <div>
+                                <p class="font-bold text-white">Phone</p>
+                                <p class="text-gray-400">+91 8103298344</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Contact Form -->
+                    <form method="POST" action="{% url 'contact_view' %}" class="space-y-6 animate-on-scroll" style="animation-delay: 0.6s;">
+                        {% csrf_token %}
+                        <div>
+                            <label for="name" class="sr-only">Name</label>
+                            <input type="text" id="name" name="name" placeholder="Your Name" value="{{request.POST.name}}" class="w-full px-4 py-3 bg-gray-900 text-gray-200 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" required>
+                        </div>
+                        <div>
+                            <label for="email" class="sr-only">Email</label>
+                            <input type="email" id="email" name="email" placeholder="Your Email" value="{{request.POST.email}}" class="w-full px-4 py-3 bg-gray-900 text-gray-200 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" required>
+                        </div>
+                        <div>
+                            <label for="message" class="sr-only">Message</label>
+                            <textarea id="message" name="message" rows="5" placeholder="Your Message" class="w-full px-4 py-3 bg-gray-900 text-gray-200 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors" required>{{request.POST.message}}</textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Attractive Footer Section -->
+    <footer class="bg-gray-950 py-12 text-center border-t border-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col items-center">
+                <div class="flex space-x-6 mb-6">
+                    <a href="https://www.linkedin.com/in/sneha-borban-7abb7233a" aria-label="LinkedIn" class="text-gray-400 hover:text-indigo-400 transition-colors transform hover:scale-125">
+                        <i class="fab fa-linkedin-in text-2xl"></i>
+                    </a>
+                    <a href="https://reddit.com/u/suhanaaaaaaa" aria-label="Reddit" class="text-gray-400 hover:text-indigo-400 transition-colors transform hover:scale-125">
+                        <i class="fab fa-reddit-alien text-2xl"></i>
+                    </a>
+                    <a href="https://github.com/snehaborban" aria-label="GitHub" class="text-gray-400 hover:text-indigo-400 transition-colors transform hover:scale-125">
+                        <i class="fab fa-github text-2xl"></i>
+                    </a>
+                    <a href="https://www.instagram.com/snehaborban" aria-label="Instagram" class="text-gray-400 hover:text-indigo-400 transition-colors transform hover:scale-125">
+                        <i class="fab fa-instagram text-2xl"></i>
+                    </a>
+                    <a href="https://twitter.com/BorbanSneh90256" aria-label="Twitter" class="text-gray-400 hover:text-indigo-400 transition-colors transform hover:scale-125">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                </div>
+                <p class="text-gray-500 text-sm mb-4">
+                    Designed and built with <i class="fas fa-heart text-red-500"></i> by Sneha Borban.
+                </p>
+                <p class="text-gray-500 text-sm">&copy; 2024 Sneha Borban. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // Setup Three.js scene
+        window.onload = function() {
+            const canvas = document.getElementById('three-canvas');
+            const sizes = {
+                width: window.innerWidth,
+                height: window.innerHeight
+            };
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+            camera.position.z = 2;
+            scene.add(camera);
+
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true // Make the background transparent to see body's color
+            });
+            renderer.setSize(sizes.width, sizes.height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Create particle geometry
+            const geometry = new THREE.BufferGeometry();
+            const count = 5000;
+            const positions = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 10;
+            }
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            // Create particle material
+            const material = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0x818cf8,
+                sizeAttenuation: true
+            });
+
+            // Create the points
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+
+            // Animate loop
+            const clock = new THREE.Clock();
+            const animate = () => {
+                const elapsedTime = clock.getElapsedTime();
+                points.rotation.y = elapsedTime * 0.1;
+                renderer.render(scene, camera);
+                window.requestAnimationFrame(animate);
+            };
+
+            animate();
+
+            // Handle window resizing
+            window.addEventListener('resize', () => {
+                sizes.width = window.innerWidth;
+                sizes.height = window.innerHeight;
+                camera.aspect = sizes.width / sizes.height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(sizes.width, sizes.height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            });
+        };
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    // Close mobile menu after clicking a link
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                }
+            });
+        });
+        
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(element => {
+            observer.observe(element);
+        });
+    </script>
+</body>
+</html>
