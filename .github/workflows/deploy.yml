@@ -40,7 +40,7 @@ jobs:
              # 👈 from your cPanel
           username: ${{ secrets.FTP_USERNAME }}  # set this in GitHub Secrets
           password: ${{ secrets.FTP_PASSWORD }}  # set this in GitHub Secrets
-          protocol: ftp                        # try ftps first
+          protocol: ftps                       # try ftps first
           port: 21
           timeout: 10000000
           server-dir: ./  # 👈 from cPanel "Path"
