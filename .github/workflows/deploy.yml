@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.13.5'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}  # set this in GitHub Secrets
           protocol: ftp                        # try ftps first
           port: 21
-          timeout: 600
+          timeout: 1000000
           server-dir: ./  # 👈 from cPanel "Path"
           passive: true
           security: loose
