@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}  # set this in GitHub Secrets
           protocol: ftps                       # try ftps first
           port: 21
-          timeout: 10000000
+          timeout: 100000000000000000000
           server-dir: ./  # 👈 from cPanel "Path"
           passive: true
           security: loose
