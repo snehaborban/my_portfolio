@@ -1,75 +1,47 @@
-# GitHub Action for deploying the Django project to cPanel
-name: Deploy to cPanel
+name: Deploy Django to cPanel
 
 on:
-  # Run on pushes to the main branch
   push:
-    branches: [ "main" ]
-  # Allow running this workflow manually from the Actions tab
-  workflow_dispatch:
+    branches:
+      - main   # change if your branch is different
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository code
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Step 2: Use a dedicated action to set up the SSH agent
-      # This is cleaner and more secure than manually creating the key file.
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          python-version: '3.11'
 
-      # Step 3: Rsync code to the server
-      # Your rsync command was already perfect!
-      - name: Sync Files to Server
+      - name: Install dependencies
         run: |
-          rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            --exclude=".git" \
-            --exclude=".github" \
-            --exclude="venv" \
-            --exclude="/_pycache_" \
-            --exclude="*.pyc" \
-            ./ ${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:${{ secrets.REMOTE_APP_DIR }}/
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # Step 4: Run remote commands (install, migrate, restart)
-      # Your remote script is excellent, especially with 'set -e'. No changes needed here.
-      - name: Run Remote Commands
+      - name: Collect static files
         env:
-          REMOTE_APP_DIR: ${{ secrets.REMOTE_APP_DIR }}
-          REMOTE_VENV_ACTIVATE: ${{ secrets.REMOTE_VENV_ACTIVATE }}
+          DJANGO_SETTINGS_MODULE: config.settings
+          SECRET_KEY: django-insecure-s-(w61&ax(6!x!nwh6a3e!8!uq=gjzhjk5p_1ql-v75wuv!!^5
+          DEBUG: "0"
+          ALLOWED_HOSTS: "lekhmitra.roshanproject.site"
+          GITHUB_ACTIONS: "true"
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }} 'bash -s' <<'ENDSSH'
-            # Exit immediately if a command exits with a non-zero status.
-            set -e
+          python manage.py collectstatic --noinput
 
-            # Navigate to the application directory
-            cd $REMOTE_APP_DIR
-
-            # Activate the virtual environment
-            source $REMOTE_VENV_ACTIVATE
-            echo "--- Virtual environment activated ---"
-
-            # Install/update dependencies
-            echo "--- Installing Python dependencies ---"
-            pip install -r requirements.txt
-
-            # Run Django management commands
-            echo "--- Running database migrations ---"
-            python manage.py migrate --noinput
-
-            echo "--- Collecting static files ---"
-            python manage.py collectstatic --noinput
-
-            # Restart the Phusion Passenger app
-            echo "--- Restarting application ---"
-            mkdir -p tmp
-            touch tmp/restart.txt
-
-            echo "--- Deployment successful! ---"
-          ENDSSH
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: lekhmitra.roshanproject.site   # 👈 from your cPanel
+          username: ${{ secrets.FTP_USERNAME }}  # set this in GitHub Secrets
+          password: ${{ secrets.FTP_PASSWORD }}  # set this in GitHub Secrets
+          protocol: ftp                        # try ftps first
+          port: 21
+          server-dir: ./  # 👈 from cPanel "Path"
+          passive: true
+          security: loose
+          log-level: verbose
