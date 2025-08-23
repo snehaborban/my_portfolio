@@ -28,7 +28,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: django-insecure-s-(w61&ax(6!x!nwh6a3e!8!uq=gjzhjk5p_1ql-v75wuv!!^5
           DEBUG: "0"
-          ALLOWED_HOSTS: "lekhmitra.roshanproject.site"
+          ALLOWED_HOSTS: "snehaborban.codes"
           GITHUB_ACTIONS: "true"
         run: |
           python manage.py collectstatic --noinput
